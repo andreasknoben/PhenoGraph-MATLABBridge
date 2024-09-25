@@ -1,6 +1,19 @@
 PhenoGraph for Python3
 ======================
 
+**This fork has adapted the PhenoGraph Python package in such a way that it can be called from MATLAB. This involves working around all multiprocessing functionality, as this is not supported by MATLAB's Python engine. Example usage:**
+
+```
+pyenv('Version', py, 'ExecutionMode', 'OutOfProcess');
+pyrun("import phenograph");
+[communities, ~, ~] = pyrun("communities, graph, Q = phenograph.cluster(X, " +
+                            "k=10, "clustering_algo='louvain', "n_jobs=1, " + ...
+                            "min_cluster_size=10)", ...
+                        ["communities", "graph", "Q"], X=x');
+```
+
+## Original README
+
 [PhenoGraph](http://www.cell.com/cell/abstract/S0092-8674(15)00637-6) is a clustering method designed for high-dimensional single-cell data. It works by creating a graph ("network") representing phenotypic similarities between cells and then identifying communities in this graph.
 
 This software package includes compiled binaries that run community detection based on C++ code written by E. Lefebvre and J.-L. Guillaume in 2008 (["Louvain method"](https://sites.google.com/site/findcommunities/)). The code has been altered to interface more efficiently with the Python code here. It should work on reasonably current Linux, Mac and Windows machines.
