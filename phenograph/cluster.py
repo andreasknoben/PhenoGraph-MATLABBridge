@@ -38,8 +38,10 @@ def get_sizes(func, args):
     return [np.count_nonzero(res) for res in results]
 
 
-def sort_by_size(clusters: np.array, min_size: int = 10, n_jobs: int = -1) -> np.array:
+def sort_by_size_parallel(clusters: np.array, min_size: int = 10, n_jobs: int = -1) -> np.array:
     """\
+    Parallel function that does not work in MATLAB - kept to refer to,
+    see new sort_by_size() below.
     Relabel clustering in order of descending cluster size.
     New labels are consecutive integers beginning at 0.
     Clusters that are smaller than min_size are assigned to -1.
@@ -68,7 +70,7 @@ def sort_by_size(clusters: np.array, min_size: int = 10, n_jobs: int = -1) -> np
     sizes = []
     ch_clust = chunk_clusters(clusters)
     TASKS = [(yield_clusters, (clusters, i)) for i in ch_clust]
-    results = [p.apply_async(get_sizes, t) for t in TASKS]
+    results = [get_sizes(t) for t in TASKS]
     for res in results:
         sizes.extend(res.get())
 
@@ -79,6 +81,38 @@ def sort_by_size(clusters: np.array, min_size: int = 10, n_jobs: int = -1) -> np
     my_dict = {c: i for i, c in enumerate(o) if sizes[c] > min_size}
     my_dict.update({c: -1 for i, c in enumerate(o) if sizes[c] <= min_size})
 
+    relabeled = np.vectorize(my_dict.get)(clusters)
+
+    return relabeled
+    
+   
+def sort_by_size(clusters: np.array, min_size: int = 10) -> np.array:
+    """\
+    Relabel clustering in order of descending cluster size.
+    New labels are consecutive integers beginning at 0.
+    Clusters that are smaller than min_size are assigned to -1.
+
+    Parameters
+    ----------
+    clusters
+        Array of clusters to be sorted by size
+    min_size
+        Clusters smaller than this threshold are considered outliers and are assigned to
+        -1 in the cluster labels
+    Returns
+    -------
+    Sorted array of clusters
+    """
+    sizes = []
+    ch_clust = chunk_clusters(clusters)
+    TASKS = [(yield_clusters, (clusters, i)) for i in ch_clust]
+    results = [get_sizes(t[0], t[1]) for t in TASKS]
+    for res in results:
+        sizes.extend(res)
+
+    o = np.argsort(sizes)[::-1]
+    my_dict = {c: i for i, c in enumerate(o) if sizes[c] > min_size}
+    my_dict.update({c: -1 for i, c in enumerate(o) if sizes[c] <= min_size})
     relabeled = np.vectorize(my_dict.get)(clusters)
 
     return relabeled
