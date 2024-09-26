@@ -12,6 +12,10 @@ pyrun("import phenograph");
                         ["communities", "graph", "Q"], X=x');
 ```
 
+Note that the original work is by [Levine et al., 2015](https://doi.org/10.1016/j.cell.2015.05.047) and can be found [here on GitHub](https://github.com/dpeerlab/PhenoGraph).
+
+Relevant changes are in the `cluster.py` file, essentially a small rewrite to avoid use of the `multiprocessing` library.
+
 ## Original README
 
 [PhenoGraph](http://www.cell.com/cell/abstract/S0092-8674(15)00637-6) is a clustering method designed for high-dimensional single-cell data. It works by creating a graph ("network") representing phenotypic similarities between cells and then identifying communities in this graph.
